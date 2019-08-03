@@ -48,11 +48,11 @@ public class MqttKit {
      * @param mailPro
      */
     static void init(String configName, MqttPro mqttPro) {
-        if(proMap.get(configName) != null) {
+        if (proMap.get(configName) != null) {
             throw new RuntimeException(configName + "配置的Mail已经存在！");
         }
         proMap.put(configName, mqttPro);
-        if(MAIN_CONFIG.equals(configName)) {
+        if (MAIN_CONFIG.equals(configName)) {
             MqttKit.mqttPro = mqttPro;
         }
     }
@@ -63,7 +63,7 @@ public class MqttKit {
      */
     public static MqttPro use(String configName) {
         MqttPro mqttPro = proMap.get(configName);
-        if(mqttPro == null) {
+        if (mqttPro == null) {
             throw new RuntimeException(configName + "配置的Mail不存在！");
         }
         return mqttPro;
@@ -150,4 +150,69 @@ public class MqttKit {
     public static boolean publish(String topic, Kv paylod, int qos, boolean retained) throws MqttPersistenceException, MqttException {
         return publish(topic, paylod.toJson().getBytes(), qos, retained, 0);
     }
+
+    /**
+     * 订阅主题
+     * @param topic String 主题
+     * @param qos int 消息质量
+     * @param messageListener 收到消息是时IMqttMessageListener回调接口
+     * @throws MqttException 订阅失败时 触发该异常
+     */
+    public static boolean sub(String topic, int qos, IMqttMessageListener messageListener) throws MqttException {
+        return sub(topic, qos, messageListener, 0);
+    }
+
+    /**
+     * 订阅主题
+     * @param topic String 主题
+     * @param qos int 消息质量
+     * @param messageListener 收到消息是时IMqttMessageListener回调接口
+     * @param timeout 回调接口 耗时时间 单位:毫秒
+     * @throws MqttException 订阅失败时 或订阅超时触发该异常
+     */
+    public static boolean sub(String topic, int qos, IMqttMessageListener messageListener, long timeout) throws MqttException {
+        return subscribe(topic, qos, messageListener, timeout);
+    }
+
+    /**
+     * 取消订阅
+     * @param topic String 需要被取消主题
+     * @return boolean true:取消成功 false:取消失败
+     * @throws MqttException
+     */
+    public static boolean unsub(String topic) throws MqttException {
+        return unsubscribe(topic);
+    }
+
+    /**
+     * 发布主题
+     * @param topic String 主题
+     * @param payload byte[] 消息内容
+     * @param qos int 消息质量
+     * @param retained 是否持久化 如果设为true 服务器会将该消息发送给当前的订阅者，还会降这个消息推送给新订阅这个题注的订阅者
+     * @throws MqttException
+     * @throws MqttPersistenceException
+     */
+    public static boolean pub(String topic, byte[] payload, int qos, boolean retained) throws MqttPersistenceException, MqttException {
+        return pub(topic, payload, qos, retained, 0);
+    }
+
+    /**
+     * 发布主题
+     * @param topic String 主题
+     * @param payload byte[] 消息内容
+     * @param qos int 消息质量
+     * @param retained 是否持久化 如果设为true 服务器会将该消息发送给当前的订阅者，还会将这个消息推送给新订阅这个题注的订阅者
+     * @param timeout 发布超时时间
+     * @throws MqttException
+     * @throws MqttPersistenceException
+     */
+    public static boolean pub(String topic, byte[] payload, int qos, boolean retained, long timeout) throws MqttPersistenceException, MqttException {
+        return publish(topic, payload, qos, retained);
+    }
+
+    public static boolean pub(String topic, Kv paylod, int qos, boolean retained) throws MqttPersistenceException, MqttException {
+        return publish(topic, paylod, qos, retained);
+    }
+
 }
