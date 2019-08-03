@@ -1,0 +1,162 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.iipcloud</groupId>
+	<artifactId>jfinal-mqtt-plugin</artifactId>
+	<version>1.0.0</version>
+	<packaging>jar</packaging>
+
+	<name>jfinal-mqtt-plugin</name>
+	<url>http://maven.apache.org</url>
+	<description>jfinal mqtt plugin</description>
+
+	<organization>
+		<name>iipcloud</name>
+		<url>http://www.iipcloud.com</url>
+	</organization>
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+		</license>
+	</licenses>
+	<developers>
+		<developer>
+			<name>sliver</name>
+			<email>18142611739@163.com</email>
+		</developer>
+	</developers>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<jfinal.version>3.4</jfinal.version>
+		<paho.version>1.2.1</paho.version>
+		<junit.version>4.12</junit.version>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>${junit.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.jfinal</groupId>
+			<artifactId>jfinal</artifactId>
+			<version>${jfinal.version}</version>
+		</dependency>
+		<!-- mqtt客户端 -->
+		<dependency>
+			<groupId>org.eclipse.paho</groupId>
+			<artifactId>org.eclipse.paho.client.mqttv3</artifactId>
+			<version>${paho.version}</version>
+		</dependency>
+
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.1</version>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+	<profiles>
+		<profile>
+			<id>release</id>
+			<!-- <distributionManagement> <snapshotRepository> <id>oss</id> <url>https://oss.sonatype.org/content/repositories/snapshots/</url> 
+				</snapshotRepository> <repository> <id>oss</id> <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url> 
+				</repository> </distributionManagement> -->
+			<distributionManagement>
+				<repository>
+					<id>iipcloud_release</id>
+					<name>iipcloud_release</name>
+					<url>http://192.168.0.188:10086/repository/iipcloud_release/</url>
+				</repository>
+				<snapshotRepository>
+					<id>iipcloud_snapshot</id>
+					<name>iipcloud_snapshot</name>
+					<url>http://192.168.0.188:10086/repository/iipcloud_snapshot//</url>
+				</snapshotRepository>
+			</distributionManagement>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-compiler-plugin</artifactId>
+						<version>3.1</version>
+						<configuration>
+							<source>1.8</source>
+							<target>1.8</target>
+						</configuration>
+					</plugin>
+					<!-- Source -->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-source-plugin</artifactId>
+						<version>3.0.1</version>
+						<executions>
+							<execution>
+								<phase>package</phase>
+								<goals>
+									<goal>jar-no-fork</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<!-- Javadoc -->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-javadoc-plugin</artifactId>
+						<version>2.10.4</version>
+						<configuration>
+							<show>private</show>
+							<aggregate>true</aggregate>
+							<nohelp>true</nohelp>
+							<charset>UTF-8</charset>
+							<encoding>UTF-8</encoding>
+							<docencoding>UTF-8</docencoding>
+						</configuration>
+						<executions>
+							<execution>
+								<phase>package</phase>
+								<goals>
+									<goal>jar</goal>
+								</goals>
+								<configuration>
+									<additionalparam>-Xdoclint:none</additionalparam>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<!-- Gpg Signature -->
+					<!-- <plugin> <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-gpg-plugin</artifactId> 
+						<version>1.6</version> <executions> <execution> <id>sign-artifacts</id> <phase>verify</phase> 
+						<goals> <goal>sign</goal> </goals> </execution> </executions> </plugin> -->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-surefire-plugin</artifactId>
+						<version>2.16</version>
+						<configuration>
+							<forkMode>once</forkMode>
+							<argLine>-Dfile.encoding=UTF-8</argLine>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+		</profile>
+	</profiles>
+
+
+</project>
