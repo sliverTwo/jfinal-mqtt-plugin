@@ -3,6 +3,7 @@
  * <p>Description: </p>
  * <p>Copyright: Copyright (c) 2019</p>
  * <p>Company: www.iipcloud.com</p>
+ * 
  * @author 肖晓霖
  * @date 2019年6月6日
  * @version 1.0
@@ -14,6 +15,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Properties;
 
+import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
+
 import com.jfinal.kit.LogKit;
 import com.jfinal.kit.Prop;
 import com.jfinal.kit.StrKit;
@@ -21,6 +24,7 @@ import com.jfinal.kit.StrKit;
 /**
  * <p>Title: Config</p>
  * <p>Description: </p>
+ * 
  * @author 肖晓霖
  * @email 18142611739@163.com
  * @date 2019年6月6日
@@ -28,6 +32,7 @@ import com.jfinal.kit.StrKit;
 public class MqttConfig {
     public static final String MQTT_VERSION_3_1_1 = "3.1.1";
     public static final String MQTT_VERSION_3_1 = "3.1";
+    public static final int DEFAULT_RECONNECT_TIME_INTERVAL = 5;
 
     /** brokerURL MQTT服务器连接地址 */
     private String brokerURL;
@@ -74,11 +79,14 @@ public class MqttConfig {
     /** enableDefaultCallback 启用默认的回调 */
     private boolean enableDefaultCallback = false;
 
+    /** maxInflight 同时发送的消息最大容量 */
+    private int maxInflight;
+
     public MqttConfig(Prop prop) {
         super();
         this.brokerURL = prop.get("mqtt.brokerURL", "tcp://127.0.0.1:1883");
         this.clientId = prop.get("mqtt.clientId", "jf_mq_p_" + System.nanoTime());
-        if(StrKit.isBlank(this.clientId)) {
+        if (StrKit.isBlank(this.clientId)) {
             this.clientId = "jf_mq_p_" + System.nanoTime();
         }
         this.userName = prop.get("mqtt.userName", null);
@@ -91,10 +99,12 @@ public class MqttConfig {
         this.version = prop.get("mqtt.version", "3.1.1");
         this.maxConnections = prop.getInt("mqtt.maxConnections", 10);
         this.stroageDir = prop.get("mqtt.stroageDir", null);
-        this.reConnectionTimeInterval = prop.getInt("mqtt.reConnectionTimeInterval", 5);
+        this.reConnectionTimeInterval = prop.getInt("mqtt.reConnectionTimeInterval", DEFAULT_RECONNECT_TIME_INTERVAL);
         this.enableDefaultCallback = prop.getBoolean("mqtt.enableDefaultCallback", false);
+        this.enableDefaultCallback = prop.getBoolean("mqtt.enableDefaultCallback", false);
+        this.maxInflight = prop.getInt("mqtt.maxInflight", MqttConnectOptions.MAX_INFLIGHT_DEFAULT);
         String sslPropPath = prop.get("mqtt.sslProperties");
-        if(StrKit.notBlank(sslPropPath)) {
+        if (StrKit.notBlank(sslPropPath)) {
             Properties p = new Properties();
             try {
                 p.load(new FileInputStream(sslPropPath));
@@ -132,6 +142,55 @@ public class MqttConfig {
         this.willQos = willQos;
         this.willretained = willretained;
         this.enableDefaultCallback = enableDefaultCallback;
+    }
+
+    /**
+     * <p>Title: </p>
+     * <p>Description: </p>
+     * 
+     * @param brokerURL
+     * @param clientId
+     * @param userName
+     * @param password
+     * @param manualAcks
+     * @param automaticReconnection
+     * @param cleanSession
+     * @param reConnectionTimeInterval
+     * @param connectionTimeout
+     * @param keepAliveInterval
+     * @param version
+     * @param maxConnections
+     * @param sslProperties
+     * @param stroageDir
+     * @param willTopic
+     * @param willPayload
+     * @param willQos
+     * @param willretained
+     * @param enableDefaultCallback
+     * @param maxInflight
+     */
+    public MqttConfig(String brokerURL, String clientId, String userName, String password, boolean manualAcks, boolean automaticReconnection, boolean cleanSession, int reConnectionTimeInterval, int connectionTimeout, int keepAliveInterval, String version, int maxConnections, Properties sslProperties, String stroageDir, String willTopic, String willPayload, int willQos, boolean willretained, boolean enableDefaultCallback, int maxInflight) {
+        super();
+        this.brokerURL = brokerURL;
+        this.clientId = clientId;
+        this.userName = userName;
+        this.password = password;
+        this.manualAcks = manualAcks;
+        this.automaticReconnection = automaticReconnection;
+        this.cleanSession = cleanSession;
+        this.reConnectionTimeInterval = reConnectionTimeInterval;
+        this.connectionTimeout = connectionTimeout;
+        this.keepAliveInterval = keepAliveInterval;
+        this.version = version;
+        this.maxConnections = maxConnections;
+        this.sslProperties = sslProperties;
+        this.stroageDir = stroageDir;
+        this.willTopic = willTopic;
+        this.willPayload = willPayload;
+        this.willQos = willQos;
+        this.willretained = willretained;
+        this.enableDefaultCallback = enableDefaultCallback;
+        this.maxInflight = maxInflight;
     }
 
     /**
@@ -243,7 +302,7 @@ public class MqttConfig {
      * @param reConnectionTimeInterval the reConnectionTimeInterval to set
      */
     public void setReConnectionTimeInterval(int reConnectionTimeInterval) {
-        if(reConnectionTimeInterval < 0 || reConnectionTimeInterval > Integer.MAX_VALUE) {
+        if (reConnectionTimeInterval < 0 || reConnectionTimeInterval > Integer.MAX_VALUE) {
             throw new IllegalArgumentException("MQTT Client重连时间间隔不能小于0 且 大于 Integer.MAX_VALUE");
         }
         this.reConnectionTimeInterval = reConnectionTimeInterval;
@@ -404,16 +463,31 @@ public class MqttConfig {
     }
 
     /**
+     * @return the maxInflight
+     */
+    public int getMaxInflight() {
+        return maxInflight;
+    }
+
+    /**
+     * @param maxInflight the maxInflight to set
+     */
+    public void setMaxInflight(int maxInflight) {
+        this.maxInflight = maxInflight;
+    }
+
+    /**
      * (non-Javadoc)
-     * <p>Title: toString</p>
-     * <p>Description: </p>
+     * Title: toString
+     * Description:
+     * 
      * @return
      * @see java.lang.Object#toString()
      */
     @Override
     public String toString() {
         return "MqttConfig [brokerURL=" + brokerURL + ", clientId=" + clientId + ", userName=" + userName + ", password=" + password + ", manualAcks=" + manualAcks + ", automaticReconnection=" + automaticReconnection + ", cleanSession=" + cleanSession + ", reConnectionTimeInterval=" + reConnectionTimeInterval + ", connectionTimeout=" + connectionTimeout + ", keepAliveInterval=" + keepAliveInterval + ", version=" + version + ", maxConnections=" + maxConnections + ", sslProperties=" + sslProperties + ", stroageDir=" + stroageDir + ", willTopic="
-                + willTopic + ", willPayload=" + willPayload + ", willQos=" + willQos + ", willretained=" + willretained + ", enableDefaultCallback=" + enableDefaultCallback + "]";
+                + willTopic + ", willPayload=" + willPayload + ", willQos=" + willQos + ", willretained=" + willretained + ", enableDefaultCallback=" + enableDefaultCallback + ", maxInflight=" + maxInflight + "]";
     }
 
 }
