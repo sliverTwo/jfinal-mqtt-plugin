@@ -12,9 +12,6 @@ package com.iipcloud.jfinal.plugin.mqtt;
 
 import java.util.Properties;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
 
 import org.eclipse.paho.client.mqttv3.IMqttMessageListener;
 import org.eclipse.paho.client.mqttv3.IMqttToken;
@@ -166,29 +163,6 @@ public class MqttPro {
         this.config = new MqttConfig(prop);
     }
 
-    /**
-     * 使用线程池定时检查client连接状态并重连client
-     */
-    private void reConnection() {
-        this.scheduler = new ScheduledThreadPoolExecutor(1, new ThreadFactory() {
-            @Override
-            public Thread newThread(Runnable r) {
-                return new Thread(r, "mqttCheckThread");
-            }
-        });
-        this.scheduler.scheduleAtFixedRate(() -> {
-            if (!client.isConnected()) {
-                try {
-                    client.reconnect();
-                    LogKit.debug("MQTT Client 尝试重连结果" + (this.client.isConnected() ? "重连成功" : "重连失败，继续尝试"));
-                } catch (MqttException e) {
-                    LogKit.error("MQTT Client重连失败", e);
-                } finally {
-                }
-            }
-        }, 0, this.config.getReConnectionTimeInterval() * 1000, TimeUnit.MILLISECONDS);
-    }
-
     public boolean start() {
         // 获取实例化mqtt client
         try {
@@ -210,6 +184,7 @@ public class MqttPro {
             this.client.setCallback(new DefaultCallback(this.client));
         }
         this.options = new MqttConnectOptions();
+        // 自动重连设置
         this.options.setAutomaticReconnect(this.config.isAutomaticReconnection());
         this.options.setCleanSession(this.config.isCleanSession());
         this.options.setConnectionTimeout(this.config.getConnectionTimeout());
@@ -256,10 +231,6 @@ public class MqttPro {
         try {
             IMqttToken token = this.client.connect(this.options);
             token.waitForCompletion(this.config.getConnectionTimeout() * 1000);
-            // 默认回调中，断线会自动重连
-            if (this.config.isAutomaticReconnection() && !this.config.isEnableDefaultCallback()) {
-                this.reConnection();
-            }
         } catch (MqttSecurityException e) {
             LogKit.error("MQTT Clinet连接MQTT Broker连接信息验证失败,请检查连接配置信息", e);
             return false;
