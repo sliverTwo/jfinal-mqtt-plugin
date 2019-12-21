@@ -19,6 +19,7 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Test;
 
 import com.iipcloud.jfinal.plugin.mqtt.MqttKit;
 import com.iipcloud.jfinal.plugin.mqtt.MqttPlugin;
@@ -48,6 +49,7 @@ public class MqttPluginTest {
         }
     }
 
+    @Test
     public void test() throws MqttException {
         MqttKit.subscribe("$queue/test", 0, new IMqttMessageListener() {
             @Override

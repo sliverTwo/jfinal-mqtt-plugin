@@ -7,6 +7,7 @@ import com.jfinal.plugin.IPlugin;
 /**
  * Jfinal MQTT 插件
  * 使用.eclipse.paho.client.mqttv3作为客户端
+ * 
  * @author Dean
  * @author sliver
  */
@@ -41,7 +42,7 @@ public class MqttPlugin implements IPlugin {
     @Override
     public boolean start() {
         this.mqttPro = new MqttPro(this.prop);
-        if(this.mqttPro.start()) {
+        if (this.mqttPro.start()) {
             MqttKit.init(configName, mqttPro);
             return true;
         }
@@ -50,15 +51,19 @@ public class MqttPlugin implements IPlugin {
 
     @Override
     public boolean stop() {
-        if(this.mqttPro == null) {
+        if (this.mqttPro == null) {
             return true;
         }
-        return this.mqttPro.stop();
+        if (this.mqttPro.stop()) {
+            MqttKit.removePro(configName);
+        }
+        return true;
     }
 
     /**
      * <p>Title: setWill</p>
      * <p>Description: 设置遗嘱消息</p>
+     * 
      * @param topic
      * @param payload
      * @param qos
