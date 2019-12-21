@@ -5,7 +5,7 @@
 
 	<groupId>com.iipcloud</groupId>
 	<artifactId>jfinal-mqtt-plugin</artifactId>
-	<version>1.0.1-beta</version>
+	<version>1.0.0</version>
 	<packaging>jar</packaging>
 
 	<name>jfinal-mqtt-plugin</name>
@@ -47,6 +47,7 @@
 			<groupId>com.jfinal</groupId>
 			<artifactId>jfinal</artifactId>
 			<version>${jfinal.version}</version>
+			<scope>provided</scope>
 		</dependency>
 		<!-- mqtt客户端 -->
 		<dependency>
@@ -54,7 +55,6 @@
 			<artifactId>org.eclipse.paho.client.mqttv3</artifactId>
 			<version>${paho.version}</version>
 		</dependency>
-
 	</dependencies>
 
 	<build>
@@ -82,7 +82,7 @@
 				<snapshotRepository>
 					<id>iipcloud_snapshot</id>
 					<name>iipcloud_snapshot</name>
-					<url>http://45.40.205.99:10086/repository/iipcloud-snapshop/</url>
+					<url>http://45.40.205.99:10086/repository/iipcloud-snapshot/</url>
 				</snapshotRepository>
 			</distributionManagement>
 			<build>
