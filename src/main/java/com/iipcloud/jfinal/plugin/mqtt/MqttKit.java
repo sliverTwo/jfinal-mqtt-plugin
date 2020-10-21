@@ -16,6 +16,7 @@ import com.jfinal.kit.Kv;
  * <p>Description: MQTT 消息处理工具
  * 注意事项:使用apollo服务器时,以/开头的消息无法订阅到
  * </p>
+ * 
  * @author Dean
  * @author 肖晓霖
  * @date 2019年3月6日
@@ -49,7 +50,7 @@ public class MqttKit {
      */
     static void init(String configName, MqttPro mqttPro) {
         if (proMap.get(configName) != null) {
-            throw new RuntimeException(configName + "配置的Mail已经存在！");
+            throw new RuntimeException(configName + "配置的Mqtt已经存在！");
         }
         proMap.put(configName, mqttPro);
         if (MAIN_CONFIG.equals(configName)) {
@@ -69,14 +70,19 @@ public class MqttKit {
         return mqttPro;
     }
 
+    public static MqttPro removePro(String configName) {
+        return proMap.remove(configName);
+    }
+
     public static MqttAsyncClient getClient() {
         return mqttPro.getClient();
     }
 
     /**
      * 订阅主题
-     * @param topic String 主题
-     * @param qos int 消息质量
+     * 
+     * @param topic           String 主题
+     * @param qos             int 消息质量
      * @param messageListener 收到消息是时IMqttMessageListener回调接口
      * @throws MqttException 订阅失败时 触发该异常
      */
@@ -86,10 +92,11 @@ public class MqttKit {
 
     /**
      * 订阅主题
-     * @param topic String 主题
-     * @param qos int 消息质量
+     * 
+     * @param topic           String 主题
+     * @param qos             int 消息质量
      * @param messageListener 收到消息是时IMqttMessageListener回调接口
-     * @param timeout 回调接口 耗时时间 单位:毫秒
+     * @param timeout         回调接口 耗时时间 单位:毫秒
      * @throws MqttException 订阅失败时 或订阅超时触发该异常
      */
     public static boolean subscribe(String topic, int qos, IMqttMessageListener messageListener, long timeout) throws MqttException {
@@ -98,6 +105,7 @@ public class MqttKit {
 
     /**
      * 取消订阅
+     * 
      * @param topic String 需要被取消主题
      * @return boolean true:取消成功 false:取消失败
      * @throws MqttException
@@ -108,9 +116,10 @@ public class MqttKit {
 
     /**
      * 发布主题
-     * @param topic String 主题
-     * @param payload byte[] 消息内容
-     * @param qos int 消息质量
+     * 
+     * @param topic    String 主题
+     * @param payload  byte[] 消息内容
+     * @param qos      int 消息质量
      * @param retained 是否持久化 如果设为true 服务器会将该消息发送给当前的订阅者，还会降这个消息推送给新订阅这个题注的订阅者
      * @throws MqttException
      * @throws MqttPersistenceException
@@ -121,11 +130,12 @@ public class MqttKit {
 
     /**
      * 发布主题
-     * @param topic String 主题
-     * @param payload byte[] 消息内容
-     * @param qos int 消息质量
+     * 
+     * @param topic    String 主题
+     * @param payload  byte[] 消息内容
+     * @param qos      int 消息质量
      * @param retained 是否持久化 如果设为true 服务器会将该消息发送给当前的订阅者，还会将这个消息推送给新订阅这个题注的订阅者
-     * @param timeout 发布超时时间
+     * @param timeout  发布超时时间
      * @throws MqttException
      * @throws MqttPersistenceException
      */
@@ -140,6 +150,7 @@ public class MqttKit {
      * 2、消息质量 Qos 必须为 1
      * 只有满足这两个条件时，调用该方法才有用，不满足这两个条件，调也是白调
      * 不是我限制，paho-mqtt-client 底层就是这么限制的，我也没辙
+     * 
      * @param message 消息体
      * @throws MqttException
      */
@@ -153,8 +164,9 @@ public class MqttKit {
 
     /**
      * 订阅主题
-     * @param topic String 主题
-     * @param qos int 消息质量
+     * 
+     * @param topic           String 主题
+     * @param qos             int 消息质量
      * @param messageListener 收到消息是时IMqttMessageListener回调接口
      * @throws MqttException 订阅失败时 触发该异常
      */
@@ -164,10 +176,11 @@ public class MqttKit {
 
     /**
      * 订阅主题
-     * @param topic String 主题
-     * @param qos int 消息质量
+     * 
+     * @param topic           String 主题
+     * @param qos             int 消息质量
      * @param messageListener 收到消息是时IMqttMessageListener回调接口
-     * @param timeout 回调接口 耗时时间 单位:毫秒
+     * @param timeout         回调接口 耗时时间 单位:毫秒
      * @throws MqttException 订阅失败时 或订阅超时触发该异常
      */
     public static boolean sub(String topic, int qos, IMqttMessageListener messageListener, long timeout) throws MqttException {
@@ -176,6 +189,7 @@ public class MqttKit {
 
     /**
      * 取消订阅
+     * 
      * @param topic String 需要被取消主题
      * @return boolean true:取消成功 false:取消失败
      * @throws MqttException
@@ -186,9 +200,10 @@ public class MqttKit {
 
     /**
      * 发布主题
-     * @param topic String 主题
-     * @param payload byte[] 消息内容
-     * @param qos int 消息质量
+     * 
+     * @param topic    String 主题
+     * @param payload  byte[] 消息内容
+     * @param qos      int 消息质量
      * @param retained 是否持久化 如果设为true 服务器会将该消息发送给当前的订阅者，还会降这个消息推送给新订阅这个题注的订阅者
      * @throws MqttException
      * @throws MqttPersistenceException
@@ -199,11 +214,12 @@ public class MqttKit {
 
     /**
      * 发布主题
-     * @param topic String 主题
-     * @param payload byte[] 消息内容
-     * @param qos int 消息质量
+     * 
+     * @param topic    String 主题
+     * @param payload  byte[] 消息内容
+     * @param qos      int 消息质量
      * @param retained 是否持久化 如果设为true 服务器会将该消息发送给当前的订阅者，还会将这个消息推送给新订阅这个题注的订阅者
-     * @param timeout 发布超时时间
+     * @param timeout  发布超时时间
      * @throws MqttException
      * @throws MqttPersistenceException
      */
