@@ -77,12 +77,12 @@
 				<repository>
 					<id>iipcloud_release</id>
 					<name>iipcloud_release</name>
-					<url>http://45.40.205.99:10086/repository/iipcloud-release/</url>
+					<url>http://maven.iipcloud.com/repository/iipcloud-release/</url>
 				</repository>
 				<snapshotRepository>
 					<id>iipcloud_snapshot</id>
 					<name>iipcloud_snapshot</name>
-					<url>http://45.40.205.99:10086/repository/iipcloud-snapshop/</url>
+					<url>http://maven.iipcloud.com/repository/iipcloud-snapshop/</url>
 				</snapshotRepository>
 			</distributionManagement>
 			<build>
