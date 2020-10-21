@@ -38,10 +38,10 @@ public class MqttPluginTest {
     @BeforeClass
     public static void start() {
         MqttPlugin mqttPlugin = new MqttPlugin("mqtt.properties");
-        
+
         plugins.add(mqttPlugin);
         for (int i = 0; i < 10; i++) {
-            plugins.add(new MqttPlugin(String.valueOf(i),"mqtt.properties"));
+            plugins.add(new MqttPlugin(String.valueOf(i), "mqtt.properties"));
         }
         for (IPlugin plugin : plugins.getPluginList()) {
             plugin.start();
@@ -70,10 +70,9 @@ public class MqttPluginTest {
         });
         pubPool.execute(() -> {
             int i = 0;
-            for (;;) {
+            while (i < 100) {
                 try {
-                    MqttKit.publish("test", String.valueOf(i).getBytes(), 0, false);
-                    System.out.println(i++);
+                    MqttKit.publish("/test", String.valueOf(i++).getBytes(), 0, false);
                     Thread.sleep(1000);
                 } catch (Exception e) {
                     stop();
@@ -83,11 +82,13 @@ public class MqttPluginTest {
                 }
             }
         });
+
         for (int i = 0; i < 5; i++) {
             final int n = i;
             subPool.execute(() -> {
                 try {
-                    MqttKit.use(String.valueOf(n)).subscribe("$queue/test", 2, new IMqttMessageListener() {
+
+                    MqttKit.use(String.valueOf(n)).subscribe("$queue//test", 2, new IMqttMessageListener() {
                         @Override
                         public void messageArrived(String topic, MqttMessage message) throws Exception {
                             System.out.println(Thread.currentThread().getName() + "收到消息:" + message);

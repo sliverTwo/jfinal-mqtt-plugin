@@ -5,9 +5,10 @@ import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
-import com.jfinal.kit.LogKit;
+import com.jfinal.log.Log;
 
 public class DefaultCallback implements MqttCallback {
+    private static Log logger = Log.getLog(DefaultCallback.class);
     private MqttAsyncClient client;
 
     public DefaultCallback(MqttAsyncClient client) {
@@ -18,7 +19,7 @@ public class DefaultCallback implements MqttCallback {
     @Override
     public void connectionLost(Throwable cause) {
         // 连接丢失后，一般在这里面进行重连
-        LogKit.info("[MQTT] 连接断开，10S之后尝试重连...");
+        logger.info("[MQTT] 连接断开，10S之后尝试重连...");
         // 打印连接原因
         cause.printStackTrace();
         for (int i = 1; i < 1000; i++) {
@@ -27,23 +28,23 @@ public class DefaultCallback implements MqttCallback {
                 if (client.isConnected()) {
                     break;
                 }
-                LogKit.info("mqtt第" + i + "次重连开始...");
+                logger.info("mqtt第" + i + "次重连开始...");
                 client.reconnect();
                 break;
             } catch (Exception e) {
-                LogKit.info("mqtt重连失败,继续重连");
+                logger.info("mqtt重连失败,继续重连");
                 e.printStackTrace();
                 continue;
             }
         }
-        LogKit.info("mqtt重连成功");
+        logger.info("mqtt重连成功");
     }
 
     @Override
     public void messageArrived(String topic, MqttMessage message) throws Exception {
-        LogKit.info("主题:" + topic);
-        LogKit.info("message:" + message);
-        
+        logger.info("主题:" + topic);
+        logger.info("message:" + message);
+
     }
 
     @Override

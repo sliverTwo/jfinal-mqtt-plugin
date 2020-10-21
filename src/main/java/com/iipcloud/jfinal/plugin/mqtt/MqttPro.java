@@ -3,7 +3,6 @@
  * <p>Description: </p>
  * <p>Copyright: Copyright (c) 2019</p>
  * <p>Company: www.iipcloud.com</p>
- * 
  * @author 肖晓霖
  * @date 2019年6月6日
  * @version 1.0
@@ -28,16 +27,18 @@ import com.jfinal.kit.Kv;
 import com.jfinal.kit.LogKit;
 import com.jfinal.kit.Prop;
 import com.jfinal.kit.StrKit;
+import com.jfinal.log.Log;
 
 /**
  * <p>Title: MqttPro</p>
  * <p>Description: </p>
- * 
  * @author 肖晓霖
  * @email 18142611739@163.com
  * @date 2019年6月6日
  */
 public class MqttPro {
+
+    private static Log logger = Log.getLog(MqttPro.class);
     private MqttConfig config;
     /** scheduler 自动重连的任务调度器 */
     private ScheduledExecutorService scheduler;
@@ -48,9 +49,8 @@ public class MqttPro {
 
     /**
      * 订阅主题
-     * 
-     * @param topic           String 主题
-     * @param qos             int 消息质量
+     * @param topic String 主题
+     * @param qos int 消息质量
      * @param messageListener 收到消息是时IMqttMessageListener回调接口
      * @throws MqttException 订阅失败时 触发该异常
      */
@@ -60,32 +60,85 @@ public class MqttPro {
 
     /**
      * 订阅主题
-     * 
-     * @param topic           String 主题
-     * @param qos             int 消息质量
+     * @param topic String 主题
+     * @param qos int 消息质量
      * @param messageListener 收到消息是时IMqttMessageListener回调接口
-     * @param timeout         回调接口 耗时时间 单位:毫秒
+     * @param timeout 回调接口 耗时时间 单位:毫秒
      * @throws MqttException 订阅失败时 或订阅超时触发该异常
      */
     public boolean subscribe(String topic, int qos, IMqttMessageListener messageListener, long timeout) throws MqttException {
         if (timeout <= -1 || timeout > Long.MAX_VALUE) {
             throw new IllegalArgumentException("订阅回调函数超时时间不能小于0 且 大于 Long.MAX_VALUE");
         }
+        if (StrKit.isBlank(topic)) {
+            throw new IllegalArgumentException("订阅的主题不能为空");
+        }
         if (!client.isConnected()) {
             client.reconnect();
         }
-        IMqttToken token = client.subscribe(topic, qos, messageListener);
+        IMqttToken token;
+        final boolean isEmqShareTopic = isEmqShareTopic(topic);
+        if (isEmqShareTopic) {
+            token = client.subscribe(topic, qos, (rtopic, msg) -> {
+                logger.error("收到了不应该收到的消息，订阅的是共享主题，订阅的topic:%s,实际的topic：%s,消息：%s", topic, rtopic, msg.toString());
+            });
+        } else {
+            token = client.subscribe(topic, qos, messageListener);
+        }
         if (timeout <= 0) {
             token.waitForCompletion();
         } else {
             token.waitForCompletion(timeout);
         }
-        return token.isComplete();
+        final boolean complete = token.isComplete();
+        if (complete) {
+            // 判断主题是否为EMQ共享主题主题
+            if (isEmqShareTopic) {
+                // 订阅去除特殊标识的主题,用于paho回调
+                String pureTopic = getPureTopic(topic);
+                return subscribe(pureTopic, qos, messageListener, timeout);
+            }
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Title: getPureTopic
+     * Description:
+     * Date: 2020年10月21日
+     * @param topic
+     * @return
+     */
+    private static String getPureTopic(String topic) {
+        if (topic.startsWith("$queue")) {
+            // 移除$queue/
+            return topic.substring(7);
+        } else if (topic.startsWith("$share")) {
+            return topic.substring(topic.indexOf("/", 7) + 1);
+        } else {
+            logger.warn("非共享主题,topic:%s", topic);
+            return topic;
+        }
+    }
+
+    /**
+     * Title: isEmqShareTopic
+     * Description: 判断是否是emq共享主题,
+     * e.g 示例 前缀 真实主题名
+     * $queue/t/1 $queue/ t/1
+     * $share/abc/t/1 $share/abc t/1
+     * Date: 2020年10月21日
+     * @param topic
+     * @return
+     */
+    private static boolean isEmqShareTopic(String topic) {
+        return topic.startsWith("$queue") || topic.startsWith("$share");
     }
 
     /**
      * 取消订阅
-     * 
      * @param topic String 需要被取消主题
      * @return boolean true:取消成功 false:取消失败
      * @throws MqttException
@@ -98,10 +151,9 @@ public class MqttPro {
 
     /**
      * 发布主题
-     * 
-     * @param topic    String 主题
-     * @param payload  byte[] 消息内容
-     * @param qos      int 消息质量
+     * @param topic String 主题
+     * @param payload byte[] 消息内容
+     * @param qos int 消息质量
      * @param retained 是否持久化 如果设为true 服务器会将该消息发送给当前的订阅者，还会降这个消息推送给新订阅这个题注的订阅者
      * @throws MqttException
      * @throws MqttPersistenceException
@@ -112,12 +164,11 @@ public class MqttPro {
 
     /**
      * 发布主题
-     * 
-     * @param topic    String 主题
-     * @param payload  byte[] 消息内容
-     * @param qos      int 消息质量
+     * @param topic String 主题
+     * @param payload byte[] 消息内容
+     * @param qos int 消息质量
      * @param retained 是否持久化 如果设为true 服务器会将该消息发送给当前的订阅者，还会将这个消息推送给新订阅这个题注的订阅者
-     * @param timeout  发布超时时间
+     * @param timeout 发布超时时间
      * @throws MqttException
      * @throws MqttPersistenceException
      */
@@ -144,7 +195,6 @@ public class MqttPro {
      * 2、消息质量 Qos 必须为 1
      * 只有满足这两个条件时，调用该方法才有用，不满足这两个条件，调也是白调
      * 不是我限制，paho-mqtt-client 底层就是这么限制的，我也没辙
-     * 
      * @param message 消息体
      * @throws MqttException
      */
@@ -259,7 +309,6 @@ public class MqttPro {
     /**
      * <p>Title: setWill</p>
      * <p>Description: 设置遗嘱消息</p>
-     * 
      * @param topic
      * @param payload
      * @param qos
@@ -287,7 +336,6 @@ public class MqttPro {
     /**
      * <p>Title: setCallback</p>
      * <p>Description: </p>
-     * 
      * @date 2019年6月6日
      * @param callback
      */
