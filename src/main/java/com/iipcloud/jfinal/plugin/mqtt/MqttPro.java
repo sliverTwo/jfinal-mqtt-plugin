@@ -9,7 +9,9 @@
  */
 package com.iipcloud.jfinal.plugin.mqtt;
 
+import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 
 import org.eclipse.paho.client.mqttv3.IMqttMessageListener;
@@ -37,9 +39,9 @@ import com.jfinal.log.Log;
  * @date 2019年6月6日
  */
 public class MqttPro {
-
     private static Log logger = Log.getLog(MqttPro.class);
-    private MqttConfig config;
+    Map<String,ListenerWrapper> callbacks;
+    MqttConfig config;
     /** scheduler 自动重连的任务调度器 */
     private ScheduledExecutorService scheduler;
     /** client 异步MQTT Client */
@@ -98,6 +100,7 @@ public class MqttPro {
                 String pureTopic = getPureTopic(topic);
                 return subscribe(pureTopic, qos, messageListener, timeout);
             }
+            callbacks.put(topic, new ListenerWrapper(topic, qos, messageListener, timeout));
             return true;
         } else {
             return false;
@@ -146,7 +149,11 @@ public class MqttPro {
     public boolean unsubscribe(String topic) throws MqttException {
         IMqttToken token = client.unsubscribe(topic);
         token.waitForCompletion();
-        return token.isComplete();
+        boolean complete = token.isComplete();
+        if(complete) {
+            callbacks.remove(topic);
+        }
+        return complete;
     }
 
     /**
@@ -231,7 +238,7 @@ public class MqttPro {
         this.client.setManualAcks(this.config.isManualAcks());
         // 启用默认回调
         if (this.config.isEnableDefaultCallback()) {
-            this.client.setCallback(new DefaultCallback(this.client));
+            this.client.setCallback(new DefaultCallback(this));
         }
         this.options = new MqttConnectOptions();
         // 自动重连设置
@@ -288,6 +295,7 @@ public class MqttPro {
             LogKit.error("MQTT Clinet连接MQTT Broker连接失败", e);
             return false;
         }
+        callbacks = new ConcurrentHashMap<>();
         return true;
     }
 
@@ -342,5 +350,52 @@ public class MqttPro {
     public void setCallback(MqttCallback callback) {
         this.client.setCallback(callback);
     }
+    
+    public MqttConfig getConfig() {
+        return config;
+    }
 
+    static class ListenerWrapper{
+        private String topic;
+        private int qos;
+        private long timeout;
+        private IMqttMessageListener listener;
+        
+        public ListenerWrapper(String topic, int qos, IMqttMessageListener listener, long timeout) {
+            super();
+            this.topic = topic;
+            this.qos = qos;
+            this.listener = listener;
+            this.timeout = timeout;
+        }
+        public String getTopic() {
+            return topic;
+        }
+        public int getQos() {
+            return qos;
+        }
+        public ListenerWrapper setQos(int qos) {
+            this.qos = qos;
+            return this;
+        }
+        public long getTimeout() {
+            return timeout;
+        }
+        public ListenerWrapper setTimeout(long timeout) {
+            this.timeout = timeout;
+            return this;
+        }
+        public IMqttMessageListener getListener() {
+            return listener;
+        }
+        public ListenerWrapper setListener(IMqttMessageListener listener) {
+            this.listener = listener;
+            return this;
+        }
+        public ListenerWrapper setTopic(String topic) {
+            this.topic = topic;
+            return this;
+        }
+        
+    }
 }

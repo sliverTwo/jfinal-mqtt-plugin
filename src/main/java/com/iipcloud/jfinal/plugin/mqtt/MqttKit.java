@@ -65,7 +65,7 @@ public class MqttKit {
     public static MqttPro use(String configName) {
         MqttPro mqttPro = proMap.get(configName);
         if (mqttPro == null) {
-            throw new RuntimeException(configName + "配置的Mail不存在！");
+            throw new RuntimeException(configName + "配置的mqtt client不存在！");
         }
         return mqttPro;
     }

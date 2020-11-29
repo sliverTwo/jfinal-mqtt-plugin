@@ -7,7 +7,7 @@ jfinal-mqtt-plugin是jfinal的mqtt消息插件插件,目前基于eclipse开源�
 <dependency>
 	<groupId>com.iipcloud</groupId>
 	<artifactId>jfinal-mqtt-plugin</artifactId>
-	<version>1.0.0</version>
+	<version>1.2.0</version>
 </dependency>
 ```
 
@@ -56,7 +56,7 @@ mqtt.sslProperties=
 #MQTT 消息保存方式 如果不设置，默认保存在内存中，设置了则保存着指定的目录下
 mqtt.stroageDir=
 
-# 启用默认的全局回调
+# 启用默认的全局回调,用于支持连接断开重连后的主题订阅恢复
 mqtt.enableDefaultCallback = false
 # 同时发送的最大消息数
 mqtt.maxInflight = 1000
@@ -80,14 +80,31 @@ mqtt.maxInflight = 1000
 
 ### 参数说明
 
-|参数名			|类型					|说明																																				|
-|--				|--						|--																																					|
-|topic			|String					|发布或订阅的消息主题																																|
-|qos			|int					|消息的质量 MqttKit.QOS_AT_MOST_ONCE（最多一次） QOS_AT_LEAST_ONCE(最少一次) QOS_EXACTLY_ONCE(只有一次) 注:消息质量取的是发布者和订阅者中最低的一个	|
-|messageListener|IMqttMessageListener	|收到指定主题消息后的回调																															|
-|paylod			|byte或者Kv				|发送的消息内容																																		|
-|retained		|boolean				|是否持久化 如果设为true 服务器会将该消息发送给当前的订阅者，还会将这个消息推送给新订阅这个题注的订阅者												|
-|timeout		|long					| 超时时间																																			|
-|message		|MqttMessage			|消息体																																				|
+| 参数名          | 类型                 | 说明                                                         |
+| --------------- | -------------------- | ------------------------------------------------------------ |
+| topic           | String               | 发布或订阅的消息主题                                         |
+| qos             | int                  | 消息的质量 MqttKit.QOS_AT_MOST_ONCE（最多一次） QOS_AT_LEAST_ONCE(最少一次) QOS_EXACTLY_ONCE(只有一次) 注:消息质量取的是发布者和订阅者中最低的一个 |
+| messageListener | IMqttMessageListener | 收到指定主题消息后的回调                                     |
+| paylod          | byte\|Kv             | 发送的消息内容                                               |
+| retained        | boolean              | 是否持久化 如果设为true 服务器会将该消息发送给当前的订阅者，还会将这个消息推送给新订阅这个题注的订阅者 |
+| timeout         | long                 | 超时时间                                                     |
+| message         | MqttMessage          | 消息体                                                       |
 
 
+
+## 注意事项
+
+1. 回调事件为同步回调,不要在收到消息的回调中发布消息,否则会导致死锁,如需发布消息,请新开一个线程.
+2. 回调事件中抛出异常会导致连接断开.
+
+
+
+## 更新日志
+
+### 20201129 1.2.0
+
+* 新增 默认回调支持自动重新订阅之前订阅的主题
+
+### 20201021 1.1.0
+
+* 添加对emq共享主题的支持

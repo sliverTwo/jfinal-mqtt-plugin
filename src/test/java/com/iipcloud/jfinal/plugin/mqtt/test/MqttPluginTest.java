@@ -9,6 +9,7 @@
  */
 package com.iipcloud.jfinal.plugin.mqtt.test;
 
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -41,22 +42,27 @@ public class MqttPluginTest {
         MqttPlugin mqttPlugin = new MqttPlugin("mqtt.properties");
 
         plugins.add(mqttPlugin);
-        for (int i = 0; i < 10; i++) {
-            plugins.add(new MqttPlugin(String.valueOf(i), "mqtt.properties"));
-        }
+        /*
+         * for (int i = 0; i < 10; i++) {
+         * plugins.add(new MqttPlugin(String.valueOf(i), "mqtt.properties"));
+         * }
+         */
         for (IPlugin plugin : plugins.getPluginList()) {
             plugin.start();
         }
     }
 
     @Test
-    public void test() throws MqttException {
+    public void test() throws MqttException, InterruptedException {
+        CountDownLatch latch = new CountDownLatch(1);
         MqttKit.subscribe("$queue/test", 0, new IMqttMessageListener() {
             @Override
             public void messageArrived(String topic, MqttMessage message) throws Exception {
                 System.out.println(message);
+                throw new Exception("10086");
             }
         });
+        latch.await();
     }
 
     public static void main(String[] args) {

@@ -67,10 +67,10 @@ public class MqttPlugin implements IPlugin {
      * @param topic
      * @param payload
      * @param qos
-     * @param retainedd
+     * @param retained
      */
-    public void setWill(String topic, String payload, int qos, boolean retainedd) {
-        this.mqttPro.setWill(topic, payload, qos, retainedd);
+    public void setWill(String topic, String payload, int qos, boolean retained) {
+        this.mqttPro.setWill(topic, payload, qos, retained);
     }
 
     /**
